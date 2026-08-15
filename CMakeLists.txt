@@ -28,6 +28,9 @@ add_executable(grass
         src/utils/App.h
 		src/utils/Camera.cpp
 		src/utils/Camera.h
+		src/utils/Skybox.cpp
+		src/utils/Skybox.h
+		src/utils/stb_image.h
 )
 
 set_target_properties(grass PROPERTIES

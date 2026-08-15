@@ -1,12 +1,13 @@
 #include <glad/gl.h>
 #include "Window.h"
 
-Window::Window(int width, int height, const std::string &title) : m_LastX(width/2.0f), m_LastY(height/2.0f){
+Window::Window(int width, int height, const std::string &title) : m_LastX(width / 2.0f), m_LastY(height / 2.0f) {
     glfwInit();
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
     m_Window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
     glfwMakeContextCurrent(m_Window);
     glfwSwapInterval(1);
@@ -73,5 +74,3 @@ void Window::MouseCallback(GLFWwindow *window, double xposIn, double yposIn) {
     self->m_LastX = xpos;
     self->m_LastY = ypos;
 }
-
-

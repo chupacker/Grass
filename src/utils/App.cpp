@@ -18,15 +18,71 @@ float vertices[] = {
     0.0f, 0.5f, 0.0f
 };
 
-App::App() : shader("../shaders/default.vert", "../shaders/default.frag") {
+float skyboxVertices[] = {
+    -1.0f, 1.0f, -1.0f,
+    -1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    1.0f, 1.0f, -1.0f,
+    -1.0f, 1.0f, -1.0f,
+
+    -1.0f, -1.0f, 1.0f,
+    -1.0f, -1.0f, -1.0f,
+    -1.0f, 1.0f, -1.0f,
+    -1.0f, 1.0f, -1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f, -1.0f, 1.0f,
+
+    1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+
+    -1.0f, -1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, -1.0f, 1.0f,
+    -1.0f, -1.0f, 1.0f,
+
+    -1.0f, 1.0f, -1.0f,
+    1.0f, 1.0f, -1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, -1.0f,
+
+    -1.0f, -1.0f, -1.0f,
+    -1.0f, -1.0f, 1.0f,
+    1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    -1.0f, -1.0f, 1.0f,
+    1.0f, -1.0f, 1.0f
+};
+
+App::App() : shader("../shaders/default.vert", "../shaders/default.frag"),
+             skyboxShader("../shaders/skybox.vert", "../shaders/skybox.frag") {
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
 
+    // Triangle
     vao.Bind();
     vbo.Bind();
     vbo.Data(sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     vao.LinkAttrib(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
+
+    // Skybox
+    skyboxVao.Bind();
+    skyboxVbo.Bind();
+    skyboxVbo.Data(sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
+
+    skyboxVao.LinkAttrib(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+
+    cubemapTexture = skybox.loadCubemap(faces);
 }
 
 void App::Run() {
@@ -34,20 +90,31 @@ void App::Run() {
         window.PollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader.use();
-
-        // Camera stuff
-        glm::mat4 model(1.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom),
                                                 (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f);
 
-        shader.setMat4("model", model);
+        // Render Skybox
+        glDepthFunc(GL_LEQUAL);
+        skyboxShader.use();
+        skyboxShader.setMat4("view", glm::mat4(glm::mat3(view)));
+        skyboxShader.setMat4("projection", projection);
+
+        skyboxVao.Bind();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDepthFunc(GL_LESS);
+
+        // Render Scene
+        shader.use();
+        shader.setMat4("model", glm::mat4(1.0f));
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
 
-
+        vao.Bind();
         glDrawArrays(GL_TRIANGLES, 0, 3);
+
         ProcessInput();
         window.SwapBuffers();
     }

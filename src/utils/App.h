@@ -6,6 +6,7 @@
 #define GRASS_APP_H
 
 
+#include "Skybox.h"
 #include "Buffers.h"
 #include "Shader.h"
 #include "Window.h"
@@ -29,8 +30,27 @@ private:
     Vao vao;
     Vbo vbo;
 
+    Vao skyboxVao;
+    Vbo skyboxVbo;
+
     //Shader
     Shader shader; // MUST BE AFTER WINDOW INITIALIZATION!!! because gladLoadGL must be called before any actual opengl function
+    Shader skyboxShader;
+
+    //Skybox
+    Skybox skybox;
+
+    GLuint cubemapTexture;
+    std::vector<std::string> faces
+    {
+        "../resources/textures/skybox/right.jpg",
+        "../resources/textures/skybox/left.jpg",
+        "../resources/textures/skybox/top.jpg",
+        "../resources/textures/skybox/bottom.jpg",
+        "../resources/textures/skybox/front.jpg",
+        "../resources/textures/skybox/back.jpg",
+    };
+
 };
 
 
