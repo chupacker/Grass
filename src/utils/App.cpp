@@ -12,11 +12,19 @@
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
-float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    0.0f, 0.5f, 0.0f
+float triangle[] = {
+    -0.5f, -0.5f, 0.0f, 0.3, 0.5, 0.0,
+    0.5f, -0.5f, 0.0f, 0.3, 0.5, 0.0,
+    0.0f, 0.5f, 0.0f, 0.4, 0.6, 0.1
 };
+
+float ground[] = {
+    -0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f, 0.5f,
+    -0.5f, -0.5f, 0.5f
+};
+
 
 float skyboxVertices[] = {
     -1.0f, 1.0f, -1.0f,
@@ -62,18 +70,28 @@ float skyboxVertices[] = {
     1.0f, -1.0f, 1.0f
 };
 
-App::App() : shader("../shaders/default.vert", "../shaders/default.frag"),
+App::App() : triangleShader("../shaders/default.vert", "../shaders/default.frag"),
+             groundShader("../shaders/ground.vert", "../shaders/ground.frag"),
              skyboxShader("../shaders/skybox.vert", "../shaders/skybox.frag") {
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
 
     // Triangle
-    vao.Bind();
-    vbo.Bind();
-    vbo.Data(sizeof(vertices), vertices, GL_STATIC_DRAW);
+    triangleVao.Bind();
+    triangleVbo.Bind();
+    triangleVbo.Data(sizeof(triangle), triangle, GL_STATIC_DRAW);
 
-    vao.LinkAttrib(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
+    triangleVao.LinkAttrib(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
+    triangleVao.LinkAttrib(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) (3 * sizeof(float)));
+
+
+    // Ground
+    groundVao.Bind();
+    groundVbo.Bind();
+    groundVbo.Data(sizeof(ground), ground, GL_STATIC_DRAW);
+
+    groundVao.LinkAttrib(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
 
     // Skybox
     skyboxVao.Bind();
@@ -106,13 +124,28 @@ void App::Run() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthFunc(GL_LESS);
 
-        // Render Scene
-        shader.use();
-        shader.setMat4("model", glm::mat4(1.0f));
-        shader.setMat4("view", view);
-        shader.setMat4("projection", projection);
 
-        vao.Bind();
+        // Render Ground
+        groundShader.use();
+        glm::mat4 model(1.0f);
+        model = glm::scale(model, glm::vec3(100.0f, 1.0f, 100.0f));
+        groundShader.setMat4("model", model);
+        groundShader.setMat4("view", view);
+        groundShader.setMat4("projection", projection);
+
+        groundVao.Bind();
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+
+        // Render triangle
+        triangleShader.use();
+        model = glm::mat4(1.0f);
+        model = glm::scale(model, glm::vec3(0.1f, 1.0f, 1.0f));
+        triangleShader.setMat4("model", model);
+        triangleShader.setMat4("view", view);
+        triangleShader.setMat4("projection", projection);
+
+        triangleVao.Bind();
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         ProcessInput();
@@ -135,6 +168,13 @@ void App::ProcessInput() {
     }
     if (window.IsKeyPressed(GLFW_KEY_D)) {
         camera.ProcessKeyboard(RIGHT);
+    }
+
+    if (window.IsKeyPressed(GLFW_KEY_F)) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     camera.ProcessMouseMovement(window.GetMouseOffsetX(), window.GetMouseOffsetY());

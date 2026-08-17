@@ -21,20 +21,24 @@ public:
 
 private:
     // Window
-    static constexpr int WIDTH = 800;
-    static constexpr int HEIGHT = 800;
+    static constexpr int WIDTH = 100*16;
+    static constexpr int HEIGHT = 100*9;
     static constexpr const char *TITLE = "Grassy";
     Window window{WIDTH, HEIGHT, TITLE};
 
     // Objects
-    Vao vao;
-    Vbo vbo;
+    Vao triangleVao;
+    Vbo triangleVbo;
+
+    Vao groundVao;
+    Vbo groundVbo;
 
     Vao skyboxVao;
     Vbo skyboxVbo;
 
     //Shader
-    Shader shader; // MUST BE AFTER WINDOW INITIALIZATION!!! because gladLoadGL must be called before any actual opengl function
+    Shader triangleShader; // MUST BE AFTER WINDOW INITIALIZATION!!! because gladLoadGL must be called before any actual opengl function
+    Shader groundShader;
     Shader skyboxShader;
 
     //Skybox

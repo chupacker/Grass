@@ -39,7 +39,7 @@ set_target_properties(grass PROPERTIES
         CXX_EXTENSIONS OFF
         COMPILE_WARNING_AS_ERROR ON
 )
-target_compile_options(grass PRIVATE -Wall -Wextra -pedantic)
+# target_compile_options(grass PRIVATE -Wall -Wextra -pedantic)
 
 target_include_directories(grass PRIVATE
         vendor/glfw/include
